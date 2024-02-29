@@ -113,6 +113,12 @@ options:
                         Initialize Steam shortcuts.vdf file if it doesn't exist.
                         EXPERIMENTAL!! 
                         (default: False)
+   --executable-type
+                        Changes the executable format to look for. By default 
+                        steamsync will look for .exe files. Use this option to change
+                        the filetype. Only works for itch.io sources currently, mainly
+                        added to support some itch.io games on the steamdeck that come bundled
+                        with a .sh launcher for linux
 ```
 
 ### FAQ

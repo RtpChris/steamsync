@@ -147,6 +147,13 @@ def parse_arguments():
         required=False,
     )
 
+    parser.add_argument(
+        "--executable-type",
+        default="exe",
+        help="Changes what kind of file to search for; defaults to .exe for windows",
+        required=False,
+    )
+
     args = parser.parse_args()
     if not args.source:
         args.source = defs.TAGS
@@ -490,7 +497,9 @@ def collect_all_games(args):
         defs.TAG_XBOX: XboxLauncher(),
         defs.TAG_LEGENDARY: LegendaryLauncher(legendary_command=args.legendary_command),
         defs.TAG_EPIC: EpicGamesStoreLauncher(egs_manifest_path=args.egs_manifests),
-        defs.TAG_ITCH: ItchLauncher(library_path=args.itch_library),
+        defs.TAG_ITCH: ItchLauncher(
+            library_path=args.itch_library, executable_type=args.executable_type
+        ),
     }
 
     # remove launchers they didn't ask for

@@ -19,8 +19,9 @@ class ItchLauncher(launcher.Launcher):
     See https://itch.io/app
     """
 
-    def __init__(self, library_path: str):
+    def __init__(self, library_path: str, executable_type: str):
         self.library_path = library_path
+        self.executable_type = executable_type
 
     def collect_games(self) -> list[defs.GameDefinition]:
         print(f"\nScanning itch library folder ({self.library_path})...")
@@ -35,18 +36,22 @@ class ItchLauncher(launcher.Launcher):
                 continue
 
             game_root_dir = receipt.parent.parent
-            exe, args, label = _get_exe_from_manifest(game_root_dir / ".itch.toml")
+            exe, args, label = _get_exe_from_manifest(
+                game_root_dir / ".itch.toml", self.executable_type
+            )
             if not exe:
                 label = ""
                 args = ""
                 exes = [
-                    exe for exe in game_root_dir.glob("*.exe") if _might_be_exe(exe)
+                    exe
+                    for exe in game_root_dir.glob(f"*.{self.executable_type}")
+                    if _might_be_exe(exe)
                 ]
                 if not exes:
                     # Look one level deeper.
                     exes = [
                         exe
-                        for exe in game_root_dir.glob("*/*.exe")
+                        for exe in game_root_dir.glob(f"*/*.{self.executable_type}")
                         if _might_be_exe(exe)
                     ]
                 if not exes:
@@ -64,7 +69,7 @@ class ItchLauncher(launcher.Launcher):
             # must be folder containing parent for some games (baba is you)
             working_dir = str(exe.parent)
             game_def = defs.GameDefinition(
-                str(exe),
+                f'"{str(exe)}"',
                 title,
                 f"{game_root_dir.name}{label}",
                 working_dir,
@@ -109,7 +114,7 @@ def _load_receipt(path_to_receipt: str) -> dict:
     return json.loads(json_str)
 
 
-def _get_exe_from_manifest(manifest_path):
+def _get_exe_from_manifest(manifest_path, executable_type):
     """If the manifest exists and contains an action, return that exe.
 
     _get_exe_from_manifest(Path) -> Path
@@ -124,7 +129,7 @@ def _get_exe_from_manifest(manifest_path):
         for a in available_actions:
             exe_name = a["path"]
             # {{EXT}} is not documented, but used by itch's sample-evil-app demo.
-            exe_name = exe_name.replace(r"{{EXT}}", ".exe")
+            exe_name = exe_name.replace(r"{{EXT}}", f".{executable_type}")
             a["path"] = manifest_path.parent / exe_name
 
         available_actions = [
